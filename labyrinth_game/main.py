@@ -5,14 +5,19 @@ from labyrinth_game import player_actions
 from labyrinth_game import utils
 
 game_state = {
-    'player_inventory': [],  # Инвентарь игрока
-    'current_room': 'entrance',  # Текущая комната
-    'game_over': False,  # Флаг окончания игры
-    'steps_taken': 0  # Количество шагов
+    'player_inventory': [],
+    'current_room': 'entrance',
+    'game_over': False,
+    'steps_taken': 0
 }
 
-def main():
-    print("Первая попытка запустить проект!")
+def main() -> None:
+    print("Добро пожаловать в Лабиринт сокровищ!")
+
+    utils.describe_current_room(game_state)
+
+    while not game_state['game_over']:
+        command = player_actions.get_input()
 
 if __name__ == "__main__":
     main()
