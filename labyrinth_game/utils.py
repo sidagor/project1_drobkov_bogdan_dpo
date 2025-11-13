@@ -1,6 +1,66 @@
 
-from labyrinth_game import constants, player_actions
+import math
 
+from labyrinth_game import constants, player_actions
+from labyrinth_game.constants import COMMANDS
+
+
+def pseudo_random(seed: int, modulo: int) -> int:
+    sin_value = math.sin(seed * 12.9898)
+
+    multiplied = sin_value * 43758.5453
+
+    fractional = multiplied - math.floor(multiplied)
+
+    return int(fractional * modulo)
+
+
+def trigger_trap(game_state: dict) -> None:
+    print("Ловушка активирована! Пол стал дрожать...")
+
+    inventory = game_state['player_inventory']
+
+    if inventory:
+        item_index = pseudo_random(game_state['steps_taken'], len(inventory))
+        lost_item = inventory.pop(item_index)
+        print(f"Вы потеряли предмет: {lost_item}")
+
+    else:
+        survival_roll = pseudo_random(game_state['steps_taken'], 10)
+
+        if survival_roll < 3:
+
+            print("Ловушка оказалась смертельной! Игра окончена.")
+            game_state['game_over'] = True
+
+        else:
+            print("Вам чудом удалось избежать гибели!")
+
+
+def random_event(game_state: dict) -> None:
+    current_room = game_state['current_room']
+    room_data = constants.ROOMS[current_room]
+
+    event_trigger = pseudo_random(game_state['steps_taken'], 10)
+
+    if event_trigger == 0:
+        event_type = pseudo_random(game_state['steps_taken'], 3)
+
+        match event_type:
+            case 0:
+                print("Вы заметили что-то блестящее на полу... Это coin!")
+                if 'items' not in room_data:
+                    room_data['items'] = []
+                room_data['items'].append('coin')
+            case 1:
+                print("Вы слышите подозрительный шорох в темноте...")
+                if 'sword' in game_state['player_inventory']:
+                    print("Благодаря вашему мечу, существо решает не нападать.")
+            case 2:
+                if (current_room == 'trap_room' and
+                    'torch' not in game_state['player_inventory']):
+                    print("Вы активировали скрытую ловушку!")
+                    trigger_trap(game_state)
 
 def describe_current_room(game_state: dict) -> None:
     current_room = game_state['current_room']
@@ -33,27 +93,44 @@ def solve_puzzle(game_state: dict) -> None:
         print("Загадок здесь нет.")
         return
 
-    question, correct_answer = room_data['puzzle']
+    puzzle_data = room_data['puzzle']
+    question = puzzle_data[0]
+    correct_answer = puzzle_data[1]
+
+    alternative_answers = []
+    if len(puzzle_data) > 2:
+        alternative_answers = puzzle_data[2:]
+
     print(question)
     user_answer = player_actions.get_input("Ваш ответ: ").lower()
 
+    all_correct_answers = [correct_answer.lower()]
+    for alt_answer in alternative_answers:
+        all_correct_answers.append(alt_answer.lower())
+
     special_rooms = ['trap_room', 'queen_chamber', 'archive']
 
-    if (user_answer != correct_answer.lower() 
+    if (user_answer not in  all_correct_answers
         and current_room not in special_rooms):
         print("Неверно. Попробуйте снова.")
         return
 
-    if user_answer == correct_answer.lower():
+    if user_answer in all_correct_answers:
         print("Верно! Головоломка решена.")
         room_data['puzzle'] = None
 
     match current_room:
         case 'queen_chamber':
-            if user_answer == 'вы':
+            puzzle_data = constants.ROOMS['queen_chamber']['puzzle']
+            correct_answer = puzzle_data[1]
+            alternative_answers = puzzle_data[2:] if len(puzzle_data) > 2 else []
+            answers_list = [correct_answer] + alternative_answers
+            all_queen_answers = [answer.lower() for answer in answers_list]
+
+            if user_answer in all_queen_answers:
                 print("Королева замирает, затем ее лицо искажается гримасой боли. ")
                 print("НЕТ! Это неправда!' - она с силой швыряет зеркало об пол. ")
-                print("Если бы я была так прекрасна, " 
+                print("Если бы я была так прекрасна, "
                       "Хлодвиг не заточил бы меня здесь! ")
                 print("Он предпочел этим мерзким сокровищам! ЗОЛОТУ! ПЫЛИ! ")
                 print("Слезы текут по ее лицу.")
@@ -79,7 +156,13 @@ def solve_puzzle(game_state: dict) -> None:
 
 
         case 'archive':
-            if user_answer == 'да':
+            puzzle_data = constants.ROOMS['archive']['puzzle']
+            correct_answer = puzzle_data[1]
+            alternative_answers = puzzle_data[2:] if len(puzzle_data) > 2 else []
+            answers_list = [correct_answer] + alternative_answers
+            all_magnus_answers = [answer.lower() for answer in answers_list]
+
+            if user_answer in all_magnus_answers:
                 print("\nМагнус издает звук, похожий на смех: 'Ха-ха-ха... "
                       " Очередной одержимый.")
                 print("Я - Магнус Архивариус, король Хлодвиг приказал мне изучить "
@@ -148,7 +231,13 @@ def solve_puzzle(game_state: dict) -> None:
                       "пока нет всех ключей.")
 
         case 'trap_room':
-            if user_answer == 'шаг шаг шаг':
+            puzzle_data = constants.ROOMS['trap']['puzzle']
+            correct_answer = puzzle_data[1]
+            alternative_answers = puzzle_data[2:] if len(puzzle_data) > 2 else []
+            answers_list = [correct_answer] + alternative_answers
+            all_trap_answers = [answer.lower() for answer in answers_list]
+
+            if user_answer in all_trap_answers:
                 print("Ловушка деактивирована! Теперь вы можете безопасно "
                   " перемещаться.")
                 print("Открылась потайная двер. Доступен новый проход south")
@@ -218,13 +307,7 @@ def attempt_open_treasure(game_state: dict) -> None:
     else:
         print("Вы отступаете от сундука.")
 
-def show_help():
+def show_help(commands: dict = COMMANDS) -> None:
     print("\nДоступные команды:")
-    print("  go <direction>  - перейти в направлении (north/south/east/west)")
-    print("  look            - осмотреть текущую комнату")
-    print("  take <item>     - поднять предмет")
-    print("  use <item>      - использовать предмет из инвентаря")
-    print("  inventory       - показать инвентарь")
-    print("  solve           - попытаться решить загадку в комнате")
-    print("  quit            - выйти из игры")
-    print("  help            - показать это сообщение")
+    for cmd, desc in commands.items():
+        print(f"  {cmd:<16} - {desc}")

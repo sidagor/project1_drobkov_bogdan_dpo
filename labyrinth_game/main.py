@@ -10,6 +10,11 @@ def process_command(game_state: dict, command: str) -> None:
     action = parts[0]
     argument = parts[1] if len(parts) > 1 else ""
 
+    direction_commands = ['north', 'south', 'east', 'west']
+    if action in direction_commands:
+        player_actions.move_player(game_state, action)
+        return
+
     match action:
         case 'look':
             utils.describe_current_room(game_state)
