@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-from labyrinth_game import constants
-from labyrinth_game import player_actions
-from labyrinth_game import utils
+from labyrinth_game import player_actions, utils
+
 
 def process_command(game_state: dict, command: str) -> None:
     parts = command.split()
@@ -29,8 +28,15 @@ def process_command(game_state: dict, command: str) -> None:
                 player_actions.use_item(game_state, argument)
             else:
                 print("Укажите предмет: use torch")
+        case 'solve':
+             if game_state['current_room'] == 'treasure_room':
+                utils.attempt_open_treasure(game_state)
+             else:
+                utils.solve_puzzle(game_state) 
         case 'inventory' | 'inv':
             player_actions.show_inventory(game_state)
+        case 'help':
+            utils.show_help()
         case 'quit' | 'exit':
             game_state['game_over'] = True
             print("Спасибо за игру!")
@@ -51,7 +57,7 @@ def main() -> None:
     utils.describe_current_room(game_state)
 
     while not game_state['game_over']:
-        command = player_actions.get_input()
+         process_command(game_state, player_actions.get_input())
 
 if __name__ == "__main__":
     main()
