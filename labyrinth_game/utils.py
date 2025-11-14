@@ -6,6 +6,8 @@ from labyrinth_game.constants import COMMANDS
 
 
 def pseudo_random(seed: int, modulo: int) -> int:
+    """Генерирует псевдослучайное число в диапазоне [0, modulo)."""
+
     sin_value = math.sin(seed * 12.9898)
 
     multiplied = sin_value * 43758.5453
@@ -16,6 +18,8 @@ def pseudo_random(seed: int, modulo: int) -> int:
 
 
 def trigger_trap(game_state: dict) -> None:
+    """Активирует ловушку с негативными последствиями для игрока."""
+
     print("Ловушка активирована! Пол стал дрожать...")
 
     inventory = game_state['player_inventory']
@@ -38,6 +42,7 @@ def trigger_trap(game_state: dict) -> None:
 
 
 def random_event(game_state: dict) -> None:
+    """Обрабатывает случайные события при перемещении игрока."""
     current_room = game_state['current_room']
     room_data = constants.ROOMS[current_room]
 
@@ -63,6 +68,8 @@ def random_event(game_state: dict) -> None:
                     trigger_trap(game_state)
 
 def describe_current_room(game_state: dict) -> None:
+    """Выводит описание текущей комнаты и её содержимого."""
+
     current_room = game_state['current_room']
 
     if current_room == ('hall_chest' and 'treasure_key'
@@ -86,6 +93,8 @@ def describe_current_room(game_state: dict) -> None:
         print("Кажется, здесь есть загадка (используйте команду solve).")
 
 def solve_puzzle(game_state: dict) -> None:
+    """Позволяет игроку решить загадку в текущей комнате."""
+
     current_room = game_state['current_room']
     room_data = constants.ROOMS[current_room]
 
@@ -115,7 +124,8 @@ def solve_puzzle(game_state: dict) -> None:
         print("Неверно. Попробуйте снова.")
         return
 
-    if user_answer in all_correct_answers:
+    if (user_answer in all_correct_answers
+        and current_room not in special_rooms):
         print("Верно! Головоломка решена.")
         room_data['puzzle'] = None
 
@@ -124,7 +134,7 @@ def solve_puzzle(game_state: dict) -> None:
             puzzle_data = constants.ROOMS['queen_chamber']['puzzle']
             correct_answer = puzzle_data[1]
             alternative_answers = puzzle_data[2:] if len(puzzle_data) > 2 else []
-            answers_list = [correct_answer] + alternative_answers
+            answers_list = [correct_answer] +list(alternative_answers)
             all_queen_answers = [answer.lower() for answer in answers_list]
 
             if user_answer in all_queen_answers:
@@ -150,16 +160,17 @@ def solve_puzzle(game_state: dict) -> None:
                                              'в углу, тихо рыдая, '
                                              'ее совершенная красота'
                                              'испорчена слезами.'
-               )
+                )
+                room_data['puzzle'] = None
+
             else:
                print("Королева не реагирует")
-
 
         case 'archive':
             puzzle_data = constants.ROOMS['archive']['puzzle']
             correct_answer = puzzle_data[1]
             alternative_answers = puzzle_data[2:] if len(puzzle_data) > 2 else []
-            answers_list = [correct_answer] + alternative_answers
+            answers_list = [correct_answer] + list(alternative_answers)
             all_magnus_answers = [answer.lower() for answer in answers_list]
 
             if user_answer in all_magnus_answers:
@@ -191,6 +202,8 @@ def solve_puzzle(game_state: dict) -> None:
 
                     print("\nМагнус: 'Сделай это... и запомни - единственный " 
                           "верный путь - уничтожить это проклятье")
+                room_data['puzzle'] = None
+
             else:
                 if user_answer == 'нет':
                     print("\nМагнус смотрит на вас с удивлением: 'Не за сокровищем? "
@@ -231,10 +244,10 @@ def solve_puzzle(game_state: dict) -> None:
                       "пока нет всех ключей.")
 
         case 'trap_room':
-            puzzle_data = constants.ROOMS['trap']['puzzle']
+            puzzle_data = constants.ROOMS['trap_room']['puzzle']
             correct_answer = puzzle_data[1]
             alternative_answers = puzzle_data[2:] if len(puzzle_data) > 2 else []
-            answers_list = [correct_answer] + alternative_answers
+            answers_list = [correct_answer] + list(alternative_answers)
             all_trap_answers = [answer.lower() for answer in answers_list]
 
             if user_answer in all_trap_answers:
@@ -248,8 +261,7 @@ def solve_puzzle(game_state: dict) -> None:
                print("Плита, на которой вы стояли, резко поднялась вверх, "
                      " вас раздавило. ")
                game_state['game_over'] = True
-               return
-
+ 
         case 'library':
             if 'silver_key' not in game_state['player_inventory']:
                 game_state['player_inventory'].append('silver_key')
@@ -276,6 +288,8 @@ def solve_puzzle(game_state: dict) -> None:
 
 
 def attempt_open_treasure(game_state: dict) -> None:
+    """Попытка открыть сокровище в treasure_room."""
+
     current_room = game_state['current_room']
     room_data = constants.ROOMS[current_room]
 
@@ -308,6 +322,8 @@ def attempt_open_treasure(game_state: dict) -> None:
         print("Вы отступаете от сундука.")
 
 def show_help(commands: dict = COMMANDS) -> None:
+    """Выводит список доступных команд с форматированием."""
+
     print("\nДоступные команды:")
     for cmd, desc in commands.items():
         print(f"  {cmd:<16} - {desc}")

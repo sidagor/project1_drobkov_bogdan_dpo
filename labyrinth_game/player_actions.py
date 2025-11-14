@@ -3,6 +3,8 @@ from labyrinth_game import constants, utils
 
 
 def move_player(game_state: dict, direction: str) -> None:
+    """Перемещает игрока в указанном направлении."""
+
     current_room = game_state['current_room']
     room_data = constants.ROOMS[current_room]
 
@@ -20,6 +22,8 @@ def move_player(game_state: dict, direction: str) -> None:
         print("Нельзя пойти в этом направлении.")
 
 def take_item(game_state: dict, item_name: str) -> None:
+    """Добавляет предмет из комнаты в инвентарь игрока."""
+
     current_room = game_state['current_room']
     room_data = constants.ROOMS[current_room]
 
@@ -133,6 +137,8 @@ def use_item(game_state: dict, item_name: str) -> None:
             print(f"Вы не знаете, как использовать {item_name}.")
 
 def get_input(prompt: str = "> ") -> str:
+    """Получает ввод от пользователя с обработкой пустых строк."""
+
     try:
         return input(prompt).strip().lower()
     except (KeyboardInterrupt, EOFError):
@@ -140,6 +146,8 @@ def get_input(prompt: str = "> ") -> str:
         return "quit"
 
 def show_inventory(game_state: dict) -> None:
+    """Показывает содержимое инвентаря игрока."""
+
     inventory = game_state['player_inventory']
 
     if inventory:

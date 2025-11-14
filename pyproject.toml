@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "project1-drobkov-bogdan-dpo"
 version = "0.1.0"
-description = ""
+description = "Текстовая приключенческая игра лабиринт"
 authors = ["Bogdan Drobkov <0brotishka0@gmail.com>"] 
 readme = "README.md"
 

@@ -4,6 +4,8 @@ from labyrinth_game import player_actions, utils
 
 
 def process_command(game_state: dict, command: str) -> None:
+    """Обрабатывает команды, введенные пользователем."""
+
     parts = command.split()
     if not parts:
         return
@@ -57,6 +59,7 @@ game_state = {
 }
 
 def main() -> None:
+    """Основная функция игры, управляющая игровым циклом."""
     print("Добро пожаловать в Лабиринт сокровищ!")
 
     utils.describe_current_room(game_state)
